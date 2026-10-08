@@ -1,60 +1,40 @@
 # CLAUDE.md
 
-Este archivo proporciona contexto a Claude Code (claude.ai/code) para trabajar en este repositorio.
+## Stack
 
-## Descripción del Proyecto
+- **Java 17** con Maven 3.8+
+- **JUnit 5** (Jupiter) para pruebas
+- Arquitectura en capas: Modelo → Repositorio → Servicio
+- Persistencia en memoria (LinkedHashMap)
 
-**tareas-api** es un sistema gestor de tareas (to-do list) desarrollado en Java 17 para la mentoría "Programar con Claude" de Generation México (CH70 Java). Se trata de un proyecto de práctica que demuestra la implementación de una arquitectura en capas con persistencia en memoria.
-
-## Comandos de Desarrollo
+## Comandos
 
 ```bash
-# Ejecutar todas las pruebas unitarias
+# Compilar y ejecutar todas las pruebas
 mvn test
 
-# Ejecutar una clase de pruebas específica
-mvn test -Dtest=TareaRepositorioTest
-
-# Ejecutar un método de prueba específico
-mvn test -Dtest=TareaServicioTest#completar
-
-# Ejecutar la aplicación de demostración (App.java)
+# Ejecutar la aplicación de demostración
 mvn -q exec:java
 
-# Limpiar y compilar el proyecto completo
+# Limpiar y empaquetar
 mvn clean package
 ```
 
-## Arquitectura del Sistema
+## Convenciones
 
-El sistema implementa una arquitectura de tres capas dentro del paquete `mx.generation.tareas`:
+- **Idioma**: Todo el código y pruebas en español (nombres de clases, métodos, variables, comentarios)
+- **Pruebas**: JUnit 5 con `@Test` (no JUnit 4). Una prueba por comportamiento, no por método
+- **Dependencias**: No agregar nuevas dependencias sin consultar primero
+- **Nombres**: Métodos de prueba descriptivos que explican el escenario: `debeLanzarExcepcionCuandoTareaNoExiste()`
+- **Estilo**: Preferir claridad sobre brevedad; evitar abreviaciones en nombres
 
-**Capa de Modelo**
-- `Tarea` - Entidad que representa una tarea con propiedades inmutables (titulo, descripcion, prioridad, fechaLimite). Únicamente el estado `completada` es mutable mediante el método `marcarCompletada()`.
-- `Prioridad` - Enumeración con valores: BAJA, MEDIA, ALTA. El valor ordinal es relevante para operaciones de comparación.
+## Reglas de trabajo
 
-**Capa de Repositorio**
-- `TareaRepositorio` - Proporciona persistencia en memoria mediante `LinkedHashMap<Integer, Tarea>`.
-- Asigna identificadores secuenciales automáticamente comenzando en 1 (id=0 indica que la tarea no ha sido persistida).
-- El método `buscar(id)` retorna `null` cuando no encuentra la tarea (no lanza excepción).
+**CRÍTICO**: Todo cambio debe dejar `mvn test` en verde. Si una modificación rompe pruebas existentes, hay que arreglarlas antes de considerar el trabajo completo.
 
-**Capa de Servicio**
-- `TareaServicio` - Implementa la lógica de negocio para las operaciones sobre tareas.
-- El método `completar(id)` lanza `TareaNoEncontradaException` cuando la tarea no existe (comportamiento diferente al repositorio que retorna null).
-- El método `generarReporte()` construye un reporte textual con estadísticas del sistema.
+## Arquitectura
 
-**Aplicación de Demostración**
-- `App.java` - Aplicación de consola para demostración. No representa un punto de entrada para producción.
-
-## Consideraciones Técnicas Importantes
-
-- **Asignación de Identificadores**: El repositorio asigna el ID al momento de persistir por primera vez. Previo a la persistencia, `tarea.getId() == 0`.
-- **Validaciones Pendientes**: La línea 19 en `Tarea.java` documenta que actualmente se aceptan títulos vacíos, pero esta validación debe implementarse.
-- **Cálculo de Fechas**: El método `TareaServicio.diasRestantes()` contiene lógica invertida (línea 67) - retorna valores negativos para fechas futuras.
-- **Construcción de Cadenas**: El método `generarReporte()` utiliza concatenación de strings (`r = r + ...`) en lugar de `StringBuilder`.
-
-## Estrategia de Pruebas
-
-- Framework: JUnit 5 (Jupiter) - utilizar anotación `@Test` de JUnit 5, no las de JUnit 4.
-- Algunas pruebas están marcadas con `@Disabled` de manera intencional para el progreso del workshop.
-- La estructura de las clases de prueba replica la estructura del código fuente: `TareaRepositorioTest`, `TareaServicioTest`.
+- `Tarea`: Entidad inmutable excepto por el estado `completada`
+- `TareaRepositorio`: Asigna IDs automáticamente (1, 2, 3...); `buscar()` retorna `null` si no encuentra
+- `TareaServicio`: Lógica de negocio; métodos como `completar()` lanzan `TareaNoEncontradaException` si el ID no existe
+- `App`: Demo de consola (no es punto de entrada para producción)
